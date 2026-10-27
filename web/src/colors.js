@@ -25,7 +25,7 @@ export const METRICS = {
   flow: {
     label: "Lưu lượng (L/s)",
     unit: "L/s",
-    stops: [[0, "#d9d9d9"], [0.05, "#c6dbef"], [0.5, "#6baed6"], [2, "#2171b5"], [10, "#08519c"], [30, "#08306b"]],
+    stops: [[0, "#bdbdbd"], [0.05, "#9ecae1"], [0.5, "#4292c6"], [2, "#2171b5"], [10, "#08519c"], [30, "#08306b"]],
   },
   velocity: {
     label: "Vận tốc (m/s)",

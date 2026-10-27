@@ -43,7 +43,7 @@ export function pipeValue(metric, net, scen, i, h, refYear) {
   }
 }
 
-export default function MapView({ net, ana, scen, hour, metric, show, is3D, selection, onSelect, flyTo, onMapReady }) {
+export default function MapView({ net, ana, scen, hour, metric, show, is3D, initialView, selection, onSelect, flyTo, onMapReady }) {
   const box = useRef(null);
   const mapRef = useRef(null);
   const overlayRef = useRef(null);
@@ -56,8 +56,9 @@ export default function MapView({ net, ana, scen, hour, metric, show, is3D, sele
     const map = new maplibregl.Map({
       container: box.current,
       style: STYLE,
-      bounds: [[Math.min(...xs), Math.min(...ys)], [Math.max(...xs), Math.max(...ys)]],
-      fitBoundsOptions: { padding: 40 },
+      ...(initialView
+        ? { center: [initialView[0], initialView[1]], zoom: initialView[2], pitch: is3D ? 60 : 0, bearing: is3D ? -25 : 0 }
+        : { bounds: [[Math.min(...xs), Math.min(...ys)], [Math.max(...xs), Math.max(...ys)]], fitBoundsOptions: { padding: 40 } }),
       maxPitch: 75,
       attributionControl: { compact: true },
     });
@@ -160,8 +161,8 @@ export default function MapView({ net, ana, scen, hour, metric, show, is3D, sele
     if (show.particles) {
       L.push(new TripsLayer({
         id: "particles", data: trips, getPath: (d) => d.path, getTimestamps: (d) => d.ts,
-        getColor: [255, 255, 255], opacity: 1, widthUnits: "pixels", getWidth: (d) => WIDTH[d.od] + 1,
-        capRounded: true, jointRounded: true, trailLength: 1.2, fadeTrail: true, currentTime: time,
+        getColor: [255, 255, 255], opacity: 1, widthUnits: "pixels", getWidth: (d) => WIDTH[d.od] + 2.5,
+        capRounded: true, jointRounded: true, trailLength: 2, fadeTrail: true, currentTime: time,
       }));
     }
     if (show.loops) {
@@ -181,10 +182,10 @@ export default function MapView({ net, ana, scen, hour, metric, show, is3D, sele
     }
     if (show.columns) {
       L.push(new ColumnLayer({
-        id: "columns", data: net.nodes.filter((n) => n.hh > 0 || n.tags.includes("daudai")), diskResolution: 10, radius: 3.5,
+        id: "columns", data: net.nodes.filter((n) => n.hh > 0 || n.tags.includes("daudai")), diskResolution: 10, radius: 2.2,
         extruded: true, pickable: true, elevationScale: 1,
         getPosition: (n) => n.ll,
-        getElevation: (n) => Math.max(0, scen.pressure[net.nodeIndex[n.id]][hour]) * 2, // phóng đại ×2
+        getElevation: (n) => Math.max(0, scen.pressure[net.nodeIndex[n.id]][hour]) * 1.5, // phóng đại ×1,5
         getFillColor: (n) => pressureColor(scen.pressure[net.nodeIndex[n.id]][hour]),
         updateTriggers: { getElevation: [hour, scen.key], getFillColor: [hour, scen.key] },
       }));

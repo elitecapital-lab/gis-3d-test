@@ -15,21 +15,26 @@ const LAYERS = [
   ["loops", "Mạch vòng đề xuất"],
 ];
 
+// Tham số URL (dạng #3d&metric=flow&scen=base&hour=19&play&view=lon,lat,zoom&panels=0) để mở thẳng một khung nhìn
+const URLP = new URLSearchParams(window.location.hash.slice(1));
+const VIEW = URLP.get("view")?.split(",").map(Number);
+const PANELS = URLP.get("panels") !== "0" && window.innerWidth > 760;
+
 export default function App() {
   const [net, setNet] = useState(null);
   const [ana, setAna] = useState(null);
   const [cache, setCache] = useState({});
-  const [scenKey, setScenKey] = useState("base");
-  const [hour, setHour] = useState(19);
-  const [playing, setPlaying] = useState(false);
-  const [metric, setMetric] = useState("pressure");
-  const [show, setShow] = useState({ particles: true, columns: false, nodes: true, warnings: true, errors: false, valves: false, sensors: false, loops: false });
-  const [is3D, setIs3D] = useState(false);
+  const [scenKey, setScenKey] = useState(URLP.get("scen") || "base");
+  const [hour, setHour] = useState(URLP.has("hour") ? +URLP.get("hour") : 19);
+  const [playing, setPlaying] = useState(URLP.has("play"));
+  const [metric, setMetric] = useState(URLP.get("metric") || "pressure");
+  const [show, setShow] = useState({ particles: true, columns: URLP.has("columns"), nodes: true, warnings: true, errors: false, valves: false, sensors: false, loops: false });
+  const [is3D, setIs3D] = useState(URLP.has("3d"));
   const [sel, setSel] = useState(null);
   const [fly, setFly] = useState(null);
   const [tab, setTab] = useState("kpi");
-  const [leftOpen, setLeftOpen] = useState(window.innerWidth > 760);
-  const [rightOpen, setRightOpen] = useState(window.innerWidth > 760);
+  const [leftOpen, setLeftOpen] = useState(PANELS);
+  const [rightOpen, setRightOpen] = useState(PANELS);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
@@ -63,7 +68,6 @@ export default function App() {
     if (scenKey.startsWith("vo_ong")) setHour(19);
   }, [scenKey]);
 
-  useEffect(() => { if (is3D) setShow((s) => ({ ...s, columns: true })); }, [is3D]);
 
   // trong lúc tải kịch bản mới vẫn giữ bản đồ (hiển thị hiện trạng) — không tạo lại map
   const base = cache.base, scen = cache[scenKey] || base, scenLoading = !cache[scenKey];
@@ -91,7 +95,7 @@ export default function App() {
   return (
     <div className={"app" + (rightOpen ? " right-open" : "")}>
       <MapView net={net} ana={ana} scen={scen} hour={hour} metric={metric} show={show} is3D={is3D}
-        selection={sel} onSelect={(o) => { setSel(o); if (window.innerWidth <= 760) setRightOpen(false); }} flyTo={fly} />
+        initialView={VIEW?.length === 3 ? VIEW : null} selection={sel} onSelect={(o) => { setSel(o); if (window.innerWidth <= 760) setRightOpen(false); }} flyTo={fly} />
 
       <div className="top-left">
         <SearchBox net={net} ana={ana} onPick={(it) => flyToObj(it.type === "place" ? { ll: it.ll } : it)} />
